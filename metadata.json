@@ -1,0 +1,6 @@
+{
+  "name": "Retail Sales Performance Analytics",
+  "description": "Executive retail intelligence platform turning weekly sales and store master data across five regions into actionable KPIs, visual insights, and strategic summaries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
