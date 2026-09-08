@@ -5,6 +5,7 @@ import {
   StoreAggregatedPerformance,
   ActionItem,
 } from '../types';
+import { generateAnalyticalSummary } from '../utils/analyticalSummary';
 import {
   Sparkles,
   ClipboardCheck,
@@ -67,16 +68,29 @@ export const ExecutiveSummaryPanel: React.FC<ExecutiveSummaryPanelProps> = ({
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`Endpoint returned status ${response.status}`);
+      }
+
       const data = await response.json();
+      if (!data || !data.summary) {
+        throw new Error('Invalid response structure');
+      }
+
       setAiAnalysis(data.summary);
       setAnalysisSource(data.source === 'gemini' ? 'Gemini 3.8 Flash' : 'Retail Diagnostic Engine');
     } catch (err) {
-      console.error('Failed to generate summary:', err);
-      // Fallback
-      setAiAnalysis(
-        `### Strategic Retail Assessment\n\n* Total Network Sales: $${(kpis.totalSales / 1000000).toFixed(2)}M against target of $${(kpis.targetSales / 1000000).toFixed(2)}M (${kpis.achievementRate}% realization).\n* Space productivity is maintaining $${kpis.salesPerSqFt}/sq ft with $${kpis.avgBasket} average transaction value.\n\n### Core Actions:\n1. Prioritize stock transfer to highest turnover locations in the East & West regions.\n2. Revamp weekday promotional cadence in lagging locations.\n3. Conduct weekly manager conversion reviews.`
+      console.warn('Backend /api/insights/generate unavailable or errored, utilizing client-side diagnostic engine:', err);
+      // High-fidelity client-side analytical summary fallback
+      const richFallback = generateAnalyticalSummary(
+        kpis,
+        regionalMetrics,
+        topStores,
+        bottomStores,
+        selectedRegion !== 'All' ? selectedRegion : undefined
       );
-      setAnalysisSource('Local Fallback');
+      setAiAnalysis(richFallback);
+      setAnalysisSource('Retail Diagnostic Engine (Edge/Local)');
     } finally {
       setIsGenerating(false);
     }
